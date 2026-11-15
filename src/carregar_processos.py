@@ -22,7 +22,7 @@ CODIGO_ASSUNTO = 14206
 TAMANHO_PAGINA = 100
 MAX_PAGINAS = 50
 TENTATIVAS = 4
-ESPERA_SEGUNDOS = 15
+ESPERA_SEGUNDOS = 30
 
 CABECALHOS = {
     "Authorization": f"APIKey {os.getenv('DATAJUD_API_KEY')}",
@@ -45,8 +45,12 @@ def buscar_pagina(sigla, search_after):
         try:
             resposta = requests.post(url, headers=CABECALHOS, json=corpo, timeout=180)
             if resposta.status_code == 200:
-                return resposta.json()["hits"]["hits"]
-            print(f"  Tentativa {tentativa}/{TENTATIVAS}: status {resposta.status_code}")
+                dados = resposta.json()
+                if not dados.get("timed_out"):
+                    return dados["hits"]["hits"]
+                print(f"  Tentativa {tentativa}/{TENTATIVAS}: resposta incompleta (timed_out)")
+            else:
+                print(f"  Tentativa {tentativa}/{TENTATIVAS}: status {resposta.status_code}")
         except requests.exceptions.RequestException as erro:
             print(f"  Tentativa {tentativa}/{TENTATIVAS}: {type(erro).__name__}")
         if tentativa < TENTATIVAS:
