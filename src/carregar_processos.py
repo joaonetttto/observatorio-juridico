@@ -19,7 +19,8 @@ TRIBUNAIS = {
 }
 
 CODIGO_ASSUNTO = 14206
-QUANTIDADE = 50
+TAMANHO_PAGINA = 100
+MAX_PAGINAS = 50
 TENTATIVAS = 4
 ESPERA_SEGUNDOS = 15
 
@@ -29,18 +30,22 @@ CABECALHOS = {
 }
 
 
-def buscar_processos(sigla):
+def buscar_pagina(sigla, search_after):
     url = f"https://api-publica.datajud.cnj.jus.br/api_publica_{sigla.lower()}/_search"
     corpo = {
-        "size": QUANTIDADE,
+        "size": TAMANHO_PAGINA,
         "track_total_hits": False,
         "query": {"match": {"assuntos.codigo": CODIGO_ASSUNTO}},
+        "sort": [{"@timestamp": {"order": "asc"}}],
     }
+    if search_after:
+        corpo["search_after"] = search_after
+
     for tentativa in range(1, TENTATIVAS + 1):
         try:
             resposta = requests.post(url, headers=CABECALHOS, json=corpo, timeout=180)
             if resposta.status_code == 200:
-                return [item["_source"] for item in resposta.json()["hits"]["hits"]]
+                return resposta.json()["hits"]["hits"]
             print(f"  Tentativa {tentativa}/{TENTATIVAS}: status {resposta.status_code}")
         except requests.exceptions.RequestException as erro:
             print(f"  Tentativa {tentativa}/{TENTATIVAS}: {type(erro).__name__}")
@@ -122,20 +127,37 @@ resumo = {}
 with conectar_banco() as conexao:
     for sigla, nome in TRIBUNAIS.items():
         print(f"{sigla}: buscando...")
-        processos = buscar_processos(sigla)
-        if processos is None:
-            print(f"{sigla}: a API não respondeu, pulando.")
-            resumo[sigla] = "falhou"
-            continue
 
         with conexao.cursor() as cursor:
             tribunal_id = garantir_tribunal(cursor, sigla, nome)
-            for processo in processos:
-                gravar_processo(cursor, tribunal_id, processo)
         conexao.commit()
 
-        print(f"{sigla}: {len(processos)} processos gravados.")
-        resumo[sigla] = len(processos)
+        total = 0
+        search_after = None
+        falhou = False
+
+        for pagina in range(1, MAX_PAGINAS + 1):
+            resultados = buscar_pagina(sigla, search_after)
+            if resultados is None:
+                falhou = True
+                break
+            if not resultados:
+                break
+
+            with conexao.cursor() as cursor:
+                for item in resultados:
+                    gravar_processo(cursor, tribunal_id, item["_source"])
+            conexao.commit()
+
+            total += len(resultados)
+            search_after = resultados[-1]["sort"]
+            print(f"  página {pagina}: {total} processos até agora")
+
+            if len(resultados) < TAMANHO_PAGINA:
+                break
+            time.sleep(1)
+
+        resumo[sigla] = f"{total}" + (" (parou no meio por erro da API)" if falhou else "")
 
 print()
 print("RESUMO")
