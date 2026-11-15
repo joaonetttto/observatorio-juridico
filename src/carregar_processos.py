@@ -8,32 +8,42 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-TRIBUNAL = "tjdft"
+TRIBUNAIS = {
+    "TJDFT": "Tribunal de Justiça do Distrito Federal e dos Territórios",
+    "TJAC": "Tribunal de Justiça do Acre",
+    "TJRR": "Tribunal de Justiça de Roraima",
+    "TJAP": "Tribunal de Justiça do Amapá",
+    "TJTO": "Tribunal de Justiça do Tocantins",
+    "TJRO": "Tribunal de Justiça de Rondônia",
+    "TJMS": "Tribunal de Justiça de Mato Grosso do Sul",
+}
+
+CODIGO_ASSUNTO = 14206
 QUANTIDADE = 50
-TENTATIVAS = 6
+TENTATIVAS = 4
 ESPERA_SEGUNDOS = 15
 
-URL = f"https://api-publica.datajud.cnj.jus.br/api_publica_{TRIBUNAL}/_search"
 CABECALHOS = {
     "Authorization": f"APIKey {os.getenv('DATAJUD_API_KEY')}",
     "Content-Type": "application/json",
 }
-CORPO = {
-    "size": QUANTIDADE,
-    "track_total_hits": False,
-    "query": {"match": {"assuntos.codigo": 14206}},
-}
 
 
-def buscar_processos():
+def buscar_processos(sigla):
+    url = f"https://api-publica.datajud.cnj.jus.br/api_publica_{sigla.lower()}/_search"
+    corpo = {
+        "size": QUANTIDADE,
+        "track_total_hits": False,
+        "query": {"match": {"assuntos.codigo": CODIGO_ASSUNTO}},
+    }
     for tentativa in range(1, TENTATIVAS + 1):
         try:
-            resposta = requests.post(URL, headers=CABECALHOS, json=CORPO, timeout=180)
+            resposta = requests.post(url, headers=CABECALHOS, json=corpo, timeout=180)
             if resposta.status_code == 200:
                 return [item["_source"] for item in resposta.json()["hits"]["hits"]]
-            print(f"Tentativa {tentativa}/{TENTATIVAS}: status {resposta.status_code}")
+            print(f"  Tentativa {tentativa}/{TENTATIVAS}: status {resposta.status_code}")
         except requests.exceptions.RequestException as erro:
-            print(f"Tentativa {tentativa}/{TENTATIVAS}: {type(erro).__name__}")
+            print(f"  Tentativa {tentativa}/{TENTATIVAS}: {type(erro).__name__}")
         if tentativa < TENTATIVAS:
             time.sleep(ESPERA_SEGUNDOS)
     return None
@@ -55,14 +65,19 @@ def converter_data(texto):
     return datetime.strptime(texto, "%Y%m%d%H%M%S")
 
 
-def gravar_processo(cursor, processo):
-    cursor.execute("SELECT id FROM tribunal WHERE sigla = %s", (processo["tribunal"],))
-    linha = cursor.fetchone()
-    if linha is None:
-        print("Tribunal não cadastrado:", processo["tribunal"])
-        return False
-    tribunal_id = linha[0]
+def garantir_tribunal(cursor, sigla, nome):
+    cursor.execute(
+        """
+        INSERT INTO tribunal (sigla, nome, esfera) VALUES (%s, %s, 'estadual')
+        ON CONFLICT (sigla) DO NOTHING
+        """,
+        (sigla, nome),
+    )
+    cursor.execute("SELECT id FROM tribunal WHERE sigla = %s", (sigla,))
+    return cursor.fetchone()[0]
 
+
+def gravar_processo(cursor, tribunal_id, processo):
     cursor.execute(
         """
         INSERT INTO processo (numero_cnj, tribunal_id, classe, data_ajuizamento, grau, orgao_julgador)
@@ -100,20 +115,29 @@ def gravar_processo(cursor, processo):
             """,
             (processo_id, assunto["codigo"]),
         )
-    return True
 
 
-processos = buscar_processos()
-if processos is None:
-    raise SystemExit("A API não respondeu depois de várias tentativas. Tente mais tarde.")
+resumo = {}
 
-print(f"Recebidos da API: {len(processos)} processos")
-
-gravados = 0
 with conectar_banco() as conexao:
-    with conexao.cursor() as cursor:
-        for processo in processos:
-            if gravar_processo(cursor, processo):
-                gravados += 1
+    for sigla, nome in TRIBUNAIS.items():
+        print(f"{sigla}: buscando...")
+        processos = buscar_processos(sigla)
+        if processos is None:
+            print(f"{sigla}: a API não respondeu, pulando.")
+            resumo[sigla] = "falhou"
+            continue
 
-print(f"Gravados no banco: {gravados} processos")
+        with conexao.cursor() as cursor:
+            tribunal_id = garantir_tribunal(cursor, sigla, nome)
+            for processo in processos:
+                gravar_processo(cursor, tribunal_id, processo)
+        conexao.commit()
+
+        print(f"{sigla}: {len(processos)} processos gravados.")
+        resumo[sigla] = len(processos)
+
+print()
+print("RESUMO")
+for sigla, resultado in resumo.items():
+    print(f"  {sigla}: {resultado}")
