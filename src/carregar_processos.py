@@ -19,10 +19,12 @@ TRIBUNAIS = {
 }
 
 CODIGO_ASSUNTO = 14206
-TAMANHO_PAGINA = 100
-MAX_PAGINAS = 50
-TENTATIVAS = 4
+TAMANHO_PAGINA = 50
+MAX_PAGINAS = 100
+TENTATIVAS = 5
 ESPERA_SEGUNDOS = 30
+PAUSA_ENTRE_PAGINAS = 5
+PAUSA_ENTRE_TRIBUNAIS = 20
 
 CABECALHOS = {
     "Authorization": f"APIKey {os.getenv('DATAJUD_API_KEY')}",
@@ -54,7 +56,7 @@ def buscar_pagina(sigla, search_after):
         except requests.exceptions.RequestException as erro:
             print(f"  Tentativa {tentativa}/{TENTATIVAS}: {type(erro).__name__}")
         if tentativa < TENTATIVAS:
-            time.sleep(ESPERA_SEGUNDOS)
+            time.sleep(ESPERA_SEGUNDOS * tentativa)
     return None
 
 
@@ -145,8 +147,16 @@ with conectar_banco() as conexao:
             if resultados is None:
                 falhou = True
                 break
+
             if not resultados:
-                break
+                print("  página vazia, confirmando se acabou mesmo...")
+                time.sleep(ESPERA_SEGUNDOS)
+                resultados = buscar_pagina(sigla, search_after)
+                if resultados is None:
+                    falhou = True
+                    break
+                if not resultados:
+                    break
 
             with conexao.cursor() as cursor:
                 for item in resultados:
@@ -156,13 +166,10 @@ with conectar_banco() as conexao:
             total += len(resultados)
             search_after = resultados[-1]["sort"]
             print(f"  página {pagina}: {total} processos até agora")
-
-            if len(resultados) < TAMANHO_PAGINA:
-                break
-            time.sleep(1)
+            time.sleep(PAUSA_ENTRE_PAGINAS)
 
         resumo[sigla] = f"{total}" + (" (parou no meio por erro da API)" if falhou else "")
-
+        time.sleep(PAUSA_ENTRE_TRIBUNAIS)
 print()
 print("RESUMO")
 for sigla, resultado in resumo.items():
