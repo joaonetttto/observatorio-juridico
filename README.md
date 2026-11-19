@@ -1,6 +1,7 @@
 # Observatório Jurídico
 
 Pipeline de dados que coleta, organiza e analisa processos judiciais brasileiros sobre **proteção de dados pessoais (LGPD)**, usando a API pública do DataJud (CNJ).
+
 ![Dashboard do Observatório Jurídico](docs/dashboard.png)
 
 > Projeto de portfólio em desenvolvimento, feito para praticar engenharia de dados, bancos de dados e arquitetura de software.
