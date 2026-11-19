@@ -1,5 +1,4 @@
-SELECT t.sigla, COUNT(*) AS processos
-FROM processo p
-JOIN tribunal t ON t.id = p.tribunal_id
-GROUP BY t.sigla
-ORDER BY processos DESC;
+SELECT t.sigla, c.iniciada_em, c.status, c.qtd_processos
+FROM coleta c
+JOIN tribunal t ON t.id = c.tribunal_id
+ORDER BY c.iniciada_em DESC;

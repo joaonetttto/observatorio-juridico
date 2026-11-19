@@ -126,7 +126,24 @@ def gravar_processo(cursor, tribunal_id, processo):
             """,
             (processo_id, assunto["codigo"]),
         )
+def iniciar_coleta(cursor, tribunal_id):
+    cursor.execute(
+        "INSERT INTO coleta (tribunal_id) VALUES (%s) RETURNING id",
+        (tribunal_id,),
+    )
+    return cursor.fetchone()[0]
 
+
+def finalizar_coleta(cursor, coleta_id, total, falhou):
+    status = "parcial" if falhou else "concluida"
+    cursor.execute(
+        """
+        UPDATE coleta
+        SET finalizada_em = NOW(), status = %s, qtd_processos = %s
+        WHERE id = %s
+        """,
+        (status, total, coleta_id),
+    )
 
 resumo = {}
 
@@ -136,6 +153,7 @@ with conectar_banco() as conexao:
 
         with conexao.cursor() as cursor:
             tribunal_id = garantir_tribunal(cursor, sigla, nome)
+            coleta_id = iniciar_coleta(cursor, tribunal_id)
         conexao.commit()
 
         total = 0
@@ -167,7 +185,9 @@ with conectar_banco() as conexao:
             search_after = resultados[-1]["sort"]
             print(f"  página {pagina}: {total} processos até agora")
             time.sleep(PAUSA_ENTRE_PAGINAS)
-
+        with conexao.cursor() as cursor:
+            finalizar_coleta(cursor, coleta_id, total, falhou)
+        conexao.commit()
         resumo[sigla] = f"{total}" + (" (parou no meio por erro da API)" if falhou else "")
         time.sleep(PAUSA_ENTRE_TRIBUNAIS)
 print()
