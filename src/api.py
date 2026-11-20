@@ -90,3 +90,19 @@ def classes(limite: int = Query(10, ge=1, le=50)):
         """,
         (limite,),
     )
+    
+@app.get("/coletas")
+def coletas():
+    return consultar(
+        """
+        SELECT DISTINCT ON (t.sigla)
+               t.sigla,
+               c.status,
+               c.qtd_processos,
+               (SELECT COUNT(*) FROM processo p WHERE p.tribunal_id = t.id) AS no_banco,
+               to_char(c.iniciada_em, 'DD/MM/YYYY HH24:MI') AS iniciada_em
+        FROM coleta c
+        JOIN tribunal t ON t.id = c.tribunal_id
+        ORDER BY t.sigla, c.iniciada_em DESC
+        """
+    )
