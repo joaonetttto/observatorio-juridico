@@ -1,6 +1,6 @@
 import requests
 
-URL_DA_PAGINA = "COLE_AQUI_O_ENDERECO_DA_PAGINA"
+URL_DA_PAGINA = "https://dadosabertos.web.stj.jus.br/dataset/espelhos-de-acordaos-primeira-secao"
 
 slug = URL_DA_PAGINA.rstrip("/").split("/")[-1]
 base = URL_DA_PAGINA.split("/dataset/")[0]
