@@ -33,29 +33,29 @@ export default function StatusColetas() {
       <table className="mt-4 w-full text-left text-sm">
         <thead className="border-b border-gray-700 text-gray-400">
           <tr>
-            <th className="py-2">Tribunal</th>
-            <th className="py-2">Última coleta</th>
-            <th className="py-2">Status</th>
-            <th className="py-2">Pegos na coleta</th>
-            <th className="py-2">Total no banco</th>
+            <th className="py-2 pr-6 pr-6 pr-6">Tribunal</th>
+            <th className="py-2 pr-6 pr-6 pr-6">Última coleta</th>
+            <th className="py-2 pr-6 pr-6 pr-6">Status</th>
+            <th className="py-2 pr-6 pr-6 pr-6">Pegos na coleta</th>
+            <th className="py-2 pr-6 pr-6 pr-6">Total no banco</th>
           </tr>
         </thead>
         <tbody>
           {coletas.map((coleta) => (
             <tr key={coleta.sigla} className="border-b border-gray-800">
-              <td className="py-2 font-medium">{coleta.sigla}</td>
-              <td className="py-2">{coleta.iniciada_em}</td>
+              <td className="py-2 pr-6 pr-6 pr-6 font-medium">{coleta.sigla}</td>
+              <td className="py-2 pr-6 pr-6 pr-6">{coleta.iniciada_em}</td>
               <td
                 className={
                   coleta.status === "concluida"
-                    ? "py-2 text-green-500"
-                    : "py-2 text-amber-500"
+                    ? "py-2 pr-6 pr-6 pr-6 text-green-500"
+                    : "py-2 pr-6 pr-6 pr-6 text-amber-500"
                 }
               >
                 {coleta.status === "concluida" ? "concluída" : "parcial"}
               </td>
-              <td className="py-2">{coleta.qtd_processos}</td>
-              <td className="py-2">{coleta.no_banco}</td>
+              <td className="py-2 pr-6 pr-6 pr-6">{coleta.qtd_processos}</td>
+              <td className="py-2 pr-6 pr-6 pr-6">{coleta.no_banco}</td>
             </tr>
           ))}
         </tbody>
