@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import StatusColetas from "./StatusColetas";
 import {
   Bar,
   BarChart,
@@ -10,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
 
 const API = "http://127.0.0.1:8000";
 
@@ -106,7 +108,7 @@ export default function Home() {
           Não consegui falar com a API. Ela está ligada?
         </p>
       )}
-
+      <StatusColetas />
       <Grafico
         titulo="Processos por ano de ajuizamento"
         descricao="Quantidade de processos da amostra, por ano em que foram abertos."
