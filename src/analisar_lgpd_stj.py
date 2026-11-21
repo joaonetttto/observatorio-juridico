@@ -25,7 +25,8 @@ def texto_do_acordao(acordao):
             partes.append(valor)
         else:
             partes.append(json.dumps(valor, ensure_ascii=False))
-    return " ".join(partes).lower()
+    texto = " ".join(partes).lower()
+    return re.sub(r"(\\n|\s)+", " ", texto)
 
 
 def posicao_forte(texto):
