@@ -67,6 +67,23 @@ TEMAS = {
         "relação de consumo",
         "consumidor",
     ],
+        "Vazamento e incidentes": [
+        "vazamento",
+        "incidente de segurança",
+        "acesso indevido",
+        "dados sensíveis",
+    ],
+    "Cobrança e litigância": [
+        "cobrança vexatória",
+        "cobrança indevida",
+        "litigância predatória",
+        "litigância abusiva",
+    ],
+    "Servidor público e administração": [
+        "servidor público",
+        "administração pública",
+        "evolução patrimonial",
+    ],
 }
 
 

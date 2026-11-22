@@ -1,3 +1,1 @@
-SELECT relacao_lgpd, COUNT(*) AS quantidade
-FROM acordao
-GROUP BY relacao_lgpd;
+SELECT ementa FROM acordao WHERE id_stj = '1448247';
