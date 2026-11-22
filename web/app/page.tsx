@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import StatusColetas from "./StatusColetas";
+import AcordaosStj from "./AcordaosStj";
 import {
   Bar,
   BarChart,
@@ -142,6 +143,7 @@ export default function Home() {
         valor="quantidade"
         horizontal
       />
+            <AcordaosStj />
     </main>
   );
 }

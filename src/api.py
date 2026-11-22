@@ -106,3 +106,32 @@ def coletas():
         ORDER BY t.sigla, c.iniciada_em DESC
         """
     )
+    
+@app.get("/acordaos-por-ano")
+def acordaos_por_ano():
+    return consultar(
+        """
+        SELECT EXTRACT(YEAR FROM data_decisao)::int AS ano, COUNT(*) AS quantidade
+        FROM acordao
+        WHERE relacao_lgpd = 'cita_lgpd' AND data_decisao IS NOT NULL
+        GROUP BY ano
+        ORDER BY ano
+        """
+    )
+
+
+@app.get("/acordaos-recentes")
+def acordaos_recentes():
+    return consultar(
+        """
+        SELECT id_stj,
+               orgao_julgador,
+               classe,
+               to_char(data_decisao, 'DD/MM/YYYY') AS data,
+               left(regexp_replace(ementa, '\\s+', ' ', 'g'), 450) AS ementa
+        FROM acordao
+        WHERE relacao_lgpd = 'cita_lgpd'
+        ORDER BY data_decisao DESC
+        LIMIT 5
+        """
+    )
