@@ -1,6 +1,6 @@
 # Observatório Jurídico
 
-Pipeline de dados que coleta, organiza e analisa processos judiciais brasileiros sobre **proteção de dados pessoais (LGPD)**, usando a API pública do DataJud (CNJ).
+Pipeline de dados que coleta, organiza e analisa decisões judiciais brasileiras sobre **proteção de dados pessoais (LGPD)**, usando duas fontes públicas: a API do DataJud (CNJ) e o Portal de Dados Abertos do STJ.
 
 ![Dashboard do Observatório Jurídico](docs/dashboard.png)
 
@@ -8,44 +8,60 @@ Pipeline de dados que coleta, organiza e analisa processos judiciais brasileiros
 
 ## O que já funciona
 
-- Banco PostgreSQL rodando em Docker, com tabelas de tribunais, processos, assuntos, decisões e coletas
-- Script em Python que busca processos na API do DataJud (assunto "Proteção de Dados Pessoais"), com paginação, novas tentativas e tratamento de erros
-- Gravação dos dados no banco sem duplicar registros
+- Banco PostgreSQL rodando em Docker, com tabelas de tribunais, processos, assuntos, coletas e acórdãos
+- Coleta de processos dos tribunais estaduais na API do DataJud (assunto "Proteção de Dados Pessoais"), com paginação, novas tentativas e tratamento de erros
 - Histórico de cada coleta (quando rodou, quantos processos, se terminou ou parou no meio)
-- Consultas SQL de análise (`banco/analises.sql`)
+- Download automático dos "espelhos de acórdãos" do STJ (mais de 200 mil acórdãos, 10 órgãos julgadores) e filtro que separa os que citam a LGPD
+- Gravação dos dados no banco sem duplicar registros
 - API em FastAPI que entrega as análises em JSON
-- Dashboard em Next.js com status das coletas e gráficos por ano, tribunal, assunto e classe
+- Dashboard em Next.js com status das coletas e gráficos por ano, tribunal, assunto, classe e acórdãos do STJ
 
 ## Stack
 
 PostgreSQL · Docker Compose · Python (requests, psycopg, FastAPI) · SQL · Next.js · Tailwind · Recharts
 
+## Fontes de dados
+
+- [API Pública do DataJud](https://datajud-wiki.cnj.jus.br/api-publica/) (CNJ): metadados de processos
+- [Portal de Dados Abertos do STJ](https://dadosabertos.web.stj.jus.br/): espelhos de acórdãos, licença Creative Commons Atribuição
+
 ## Primeiras observações
 
-Na amostra coletada (439 processos de 6 tribunais estaduais, em novembro de 2026):
+**Processos dos tribunais estaduais** (amostra de cerca de 440 processos de 6 tribunais):
 
 - A quantidade de processos por ano de ajuizamento cresce de 2021 a 2026
 - Os assuntos que mais acompanham "Proteção de Dados Pessoais" são Direito de Imagem, Dano Moral e Privacidade
 - A maioria dos casos é cível de primeira instância
 
+**Acórdãos do STJ** (201.792 acórdãos únicos, de maio de 2022 a outubro de 2026):
+
+- 82 citam a Lei 13.709/2018 (LGPD) e outros 120 apenas mencionam "dados pessoais"
+- Os que citam a lei vêm principalmente da Terceira e da Quarta Turma, que julgam direito privado
+- A quantidade por ano de decisão também cresce: 4 em 2022, 4 em 2023, 7 em 2024, 20 em 2025 e 47 em 2026 (2022 e 2026 são anos incompletos na base)
+
 ## Limitações
 
-- A API pública do DataJud é instável (erros 429 e 504) e às vezes devolve resultados parciais, então os dados são uma **amostra** e não o total de processos
-- A API entrega apenas metadados, sem o texto das decisões
-- Alguns tribunais retornaram poucos ou nenhum processo com esse assunto
+- A API pública do DataJud é instável (erros 429 e 504) e às vezes devolve resultados parciais, então os dados dos tribunais estaduais são uma **amostra** e não o total
+- O DataJud entrega apenas metadados, sem o texto das decisões
+- No STJ, "citar a LGPD" significa que a lei aparece na ementa, nas referências legislativas ou nos termos de pesquisa. Isso **não quer dizer** que a LGPD seja o tema central do acórdão
+- O filtro usa palavras-chave e pode errar nos dois sentidos (deixar passar casos ou incluir casos pouco relacionados)
+- Um dos arquivos do STJ (Segunda Seção, fevereiro de 2024) veio com erro de formatação na fonte e foi ignorado
+- Só os metadados e a ementa dos acórdãos são guardados, não o texto integral
 
 ## Como rodar
 
-1. Clone o repositório e crie o ambiente: `python -m venv .venv` e `pip install -r requirements.txt`
+1. Clone o repositório e crie o ambiente: `python -m venv .venv`, ative-o e rode `pip install -r requirements.txt`
 2. Copie `.env.example` para `.env` e preencha (a chave pública do DataJud está na wiki do CNJ)
 3. Suba o banco: `docker compose up -d`
-4. Execute os arquivos da pasta `banco` em ordem (01 a 05)
-5. Rode a coleta: `python src/carregar_processos.py`
-6. Suba a API: `python -m uvicorn src.api:app --reload`
-7. Suba o site: entre na pasta `web`, rode `npm install` e depois `npm run dev`
+4. Execute os arquivos da pasta `banco` em ordem (01 a 06)
+5. Coleta dos tribunais estaduais: `python src/carregar_processos.py`
+6. Acórdãos do STJ: `python src/baixar_acordaos_stj.py` e depois `python src/carregar_acordaos.py`
+7. Suba a API: `python -m uvicorn src.api:app --reload`
+8. Suba o site: entre na pasta `web`, rode `npm install` e depois `npm run dev`
 
 ## Próximos passos
 
-- Textos de decisões a partir de outra fonte
-- Classificação por tema e busca
+- Classificação dos acórdãos por tema (crédito e cadastro, bancário, internet, saúde etc.)
+- Busca textual nas ementas
 - Coleta em segundo plano, com agendamento automático
+- Ampliar os tribunais estaduais cobertos
