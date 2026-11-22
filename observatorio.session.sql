@@ -1,1 +1,0 @@
-SELECT ementa FROM acordao WHERE id_stj = '1448247';

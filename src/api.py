@@ -135,3 +135,16 @@ def acordaos_recentes():
         LIMIT 5
         """
     )
+    
+@app.get("/acordaos-por-tema")
+def acordaos_por_tema():
+    return consultar(
+        """
+        SELECT COALESCE(t.tema, 'Sem tema definido') AS tema, COUNT(*) AS quantidade
+        FROM acordao a
+        LEFT JOIN acordao_tema t ON t.id_stj = a.id_stj
+        WHERE a.relacao_lgpd = 'cita_lgpd'
+        GROUP BY COALESCE(t.tema, 'Sem tema definido')
+        ORDER BY quantidade DESC
+        """
+    )

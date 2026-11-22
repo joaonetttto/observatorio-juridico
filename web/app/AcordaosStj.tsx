@@ -14,6 +14,7 @@ import {
 const API = "http://127.0.0.1:8000";
 
 type PorAno = { ano: number; quantidade: number };
+type PorTema = { tema: string; quantidade: number };
 type Acordao = {
   id_stj: string;
   orgao_julgador: string;
@@ -24,6 +25,7 @@ type Acordao = {
 
 export default function AcordaosStj() {
   const [porAno, setPorAno] = useState<PorAno[]>([]);
+  const [porTema, setPorTema] = useState<PorTema[]>([]);
   const [recentes, setRecentes] = useState<Acordao[]>([]);
 
   useEffect(() => {
@@ -31,6 +33,10 @@ export default function AcordaosStj() {
       .then((r) => r.json())
       .then(setPorAno)
       .catch(() => setPorAno([]));
+    fetch(`${API}/acordaos-por-tema`)
+      .then((r) => r.json())
+      .then(setPorTema)
+      .catch(() => setPorTema([]));
     fetch(`${API}/acordaos-recentes`)
       .then((r) => r.json())
       .then(setRecentes)
@@ -47,12 +53,35 @@ export default function AcordaosStj() {
         central de cada decisão.
       </p>
 
-      <div className="mt-6 h-72">
+      <h3 className="mt-8 text-lg font-semibold">Por ano da decisão</h3>
+      <div className="mt-4 h-72">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={porAno}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="ano" />
             <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar dataKey="quantidade" fill="#2563eb" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <h3 className="mt-10 text-lg font-semibold">Temas mais comuns</h3>
+      <p className="mt-1 text-sm text-gray-500">
+        Um acórdão pode ter mais de um tema, então a soma passa do total. Os
+        temas vêm de palavras-chave e são uma classificação aproximada.
+      </p>
+      <div className="mt-4 h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={porTema} layout="vertical" margin={{ left: 20 }}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis type="number" allowDecimals={false} />
+            <YAxis
+              type="category"
+              dataKey="tema"
+              width={240}
+              tick={{ fontSize: 12 }}
+            />
             <Tooltip />
             <Bar dataKey="quantidade" fill="#2563eb" />
           </BarChart>
