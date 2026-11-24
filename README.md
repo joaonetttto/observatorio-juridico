@@ -15,6 +15,8 @@ Pipeline de dados que coleta, organiza e analisa decisões judiciais brasileiras
 - Gravação dos dados no banco sem duplicar registros
 - API em FastAPI que entrega as análises em JSON
 - Dashboard em Next.js com status das coletas e gráficos por ano, tribunal, assunto, classe e acórdãos do STJ
+- Classificação dos acórdãos por tema (consumidor, bancário, crédito, vazamento, internet etc.) com regras de palavras-chave
+- Busca por texto nas ementas, com destaque dos termos encontrados
 
 ## Stack
 
@@ -35,10 +37,11 @@ PostgreSQL · Docker Compose · Python (requests, psycopg, FastAPI) · SQL · Ne
 
 **Acórdãos do STJ** (201.792 acórdãos únicos, de maio de 2022 a outubro de 2026):
 
+
 - 82 citam a Lei 13.709/2018 (LGPD) e outros 120 apenas mencionam "dados pessoais"
 - Os que citam a lei vêm principalmente da Terceira e da Quarta Turma, que julgam direito privado
 - A quantidade por ano de decisão também cresce: 4 em 2022, 4 em 2023, 7 em 2024, 20 em 2025 e 47 em 2026 (2022 e 2026 são anos incompletos na base)
-
+- Dos 82 acórdãos que citam a LGPD, os temas mais comuns são Consumidor (45), Bancário e fraude (32), Cadastro e crédito (25) e Vazamento e incidentes (19). Os dois conjuntos de dados (processos estaduais e acórdãos do STJ) apontam para o mesmo tipo de disputa: relações de consumo, e não vazamento em si
 ## Limitações
 
 - A API pública do DataJud é instável (erros 429 e 504) e às vezes devolve resultados parciais, então os dados dos tribunais estaduais são uma **amostra** e não o total
@@ -47,21 +50,22 @@ PostgreSQL · Docker Compose · Python (requests, psycopg, FastAPI) · SQL · Ne
 - O filtro usa palavras-chave e pode errar nos dois sentidos (deixar passar casos ou incluir casos pouco relacionados)
 - Um dos arquivos do STJ (Segunda Seção, fevereiro de 2024) veio com erro de formatação na fonte e foi ignorado
 - Só os metadados e a ementa dos acórdãos são guardados, não o texto integral
-
+- Os temas vêm de palavras-chave, então são uma classificação aproximada: um acórdão pode ter mais de um tema e 6 dos 82 ficaram sem tema definido
+- A busca por texto cobre só as ementas (não o texto integral) e exige as palavras com acento
 ## Como rodar
 
 1. Clone o repositório e crie o ambiente: `python -m venv .venv`, ative-o e rode `pip install -r requirements.txt`
 2. Copie `.env.example` para `.env` e preencha (a chave pública do DataJud está na wiki do CNJ)
 3. Suba o banco: `docker compose up -d`
-4. Execute os arquivos da pasta `banco` em ordem (01 a 06)
+4. Execute os arquivos da pasta `banco` em ordem (01 a 08)
 5. Coleta dos tribunais estaduais: `python src/carregar_processos.py`
-6. Acórdãos do STJ: `python src/baixar_acordaos_stj.py` e depois `python src/carregar_acordaos.py`
+6. Acórdãos do STJ: `python src/baixar_acordaos_stj.py`, depois `python src/carregar_acordaos.py` e `python src/classificar_temas.py`
 7. Suba a API: `python -m uvicorn src.api:app --reload`
 8. Suba o site: entre na pasta `web`, rode `npm install` e depois `npm run dev`
 
 ## Próximos passos
 
-- Classificação dos acórdãos por tema (crédito e cadastro, bancário, internet, saúde etc.)
-- Busca textual nas ementas
+- Testes automatizados para o filtro de LGPD e a classificação por tema
 - Coleta em segundo plano, com agendamento automático
 - Ampliar os tribunais estaduais cobertos
+- Refinar os temas olhando os acórdãos sem classificação
