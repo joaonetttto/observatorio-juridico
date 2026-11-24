@@ -148,3 +148,31 @@ def acordaos_por_tema():
         ORDER BY quantidade DESC
         """
     )
+    
+    
+@app.get("/acordaos-busca")
+def acordaos_busca(
+    q: str = Query(..., min_length=2, max_length=100),
+    limite: int = Query(10, ge=1, le=30),
+):
+    return consultar(
+        """
+        SELECT id_stj,
+               orgao_julgador,
+               classe,
+               to_char(data_decisao, 'DD/MM/YYYY') AS data,
+               ts_headline(
+                   'portuguese',
+                   regexp_replace(ementa, '\\s+', ' ', 'g'),
+                   websearch_to_tsquery('portuguese', %s),
+                   'MaxWords=45, MinWords=20, StartSel=<<, StopSel=>>'
+               ) AS trecho
+        FROM acordao
+        WHERE relacao_lgpd = 'cita_lgpd'
+          AND busca @@ websearch_to_tsquery('portuguese', %s)
+        ORDER BY ts_rank(busca, websearch_to_tsquery('portuguese', %s)) DESC,
+                 data_decisao DESC
+        LIMIT %s
+        """,
+        (q, q, q, limite),
+    )
