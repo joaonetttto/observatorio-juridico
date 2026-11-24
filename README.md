@@ -3,7 +3,7 @@
 Pipeline de dados que coleta, organiza e analisa decisões judiciais brasileiras sobre **proteção de dados pessoais (LGPD)**, usando duas fontes públicas: a API do DataJud (CNJ) e o Portal de Dados Abertos do STJ.
 
 ![Dashboard do Observatório Jurídico](docs/dashboard.png)
-
+![Acórdãos do STJ por ano e por tema](docs/dashboard-stj.png)
 > Projeto de portfólio em desenvolvimento, feito para praticar engenharia de dados, bancos de dados e arquitetura de software.
 
 ## O que já funciona
