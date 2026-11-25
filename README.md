@@ -63,6 +63,14 @@ PostgreSQL · Docker Compose · Python (requests, psycopg, FastAPI) · SQL · Ne
 7. Suba a API: `python -m uvicorn src.api:app --reload`
 8. Suba o site: entre na pasta `web`, rode `npm install` e depois `npm run dev`
 
+
+## Qualidade e fluxo de trabalho
+
+- Testes automatizados com pytest (filtro de LGPD e classificação por tema)
+- GitHub Actions roda os testes em cada pull request e em cada push na main
+- A branch main é protegida: só recebe mudanças por pull request com os testes passando
+
+
 ## Próximos passos
 
 - Testes automatizados para o filtro de LGPD e a classificação por tema
