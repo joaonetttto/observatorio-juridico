@@ -15,7 +15,6 @@ import {
   YAxis,
 } from "recharts";
 
-
 const API = "http://127.0.0.1:8000";
 
 type Linha = Record<string, string | number>;
@@ -39,7 +38,9 @@ function Grafico({
 }: GraficoProps) {
   return (
     <section className="mt-8 rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-      <h2 className="text-xl font-semibold">{titulo}</h2>
+      <h2 className="border-l-4 border-blue-500 pl-3 text-xl font-semibold">
+        {titulo}
+      </h2>
       <p className="mt-1 text-sm text-gray-500">{descricao}</p>
       <div className={horizontal ? "mt-4 h-96" : "mt-4 h-72"}>
         <ResponsiveContainer width="100%" height="100%">
@@ -96,23 +97,32 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-4xl p-8">
-      <h1 className="text-3xl font-bold">Observatório Jurídico</h1>
-      <p className="mt-2 text-gray-500">
-        Processos sobre proteção de dados pessoais, coletados na API pública do
-        DataJud (CNJ).
-      </p>
-      <p className="mt-2 text-sm text-amber-500">
-        Atenção: os dados são uma amostra, não o total de processos de cada
-        tribunal.
-      </p>
+      <header>
+        <span className="rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-400">
+          Projeto de portfólio · LGPD
+        </span>
+        <h1 className="mt-4 text-4xl font-bold tracking-tight md:text-5xl">
+          Observatório <span className="text-blue-500">Jurídico</span>
+        </h1>
+        <p className="mt-3 max-w-2xl text-base text-gray-400">
+          Decisões judiciais sobre proteção de dados pessoais (LGPD), coletadas
+          no DataJud (CNJ) e nos Dados Abertos do STJ.
+        </p>
+        <p className="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-400">
+          Atenção: os dados são uma amostra, não o total de processos de cada
+          tribunal.
+        </p>
+      </header>
 
       {erro && (
         <p className="mt-6 text-red-600">
           Não consegui falar com a API. Ela está ligada?
         </p>
       )}
+
       <KpiCards />
       <StatusColetas />
+
       <Grafico
         titulo="Processos por ano de ajuizamento"
         descricao="Quantidade de processos da amostra, por ano em que foram abertos."
@@ -146,8 +156,9 @@ export default function Home() {
         valor="quantidade"
         horizontal
       />
-            <AcordaosStj />
-                  <BuscaAcordaos />
+
+      <AcordaosStj />
+      <BuscaAcordaos />
     </main>
   );
 }
