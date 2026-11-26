@@ -24,7 +24,7 @@ export default function StatusColetas() {
 
   return (
     <section className="mt-8 rounded-xl border border-gray-800 bg-gray-900/40 p-6">
-      <h2 className="text-xl font-semibold">Status das coletas</h2>
+      <h2 className="border-l-4 border-blue-500 pl-3 text-xl font-semibold">Status das coletas</h2>
       <p className="mt-1 text-sm text-gray-500">
         Resultado da última coleta de cada tribunal. &quot;Parcial&quot; quer dizer
         que a API do CNJ falhou no meio, então aquele tribunal pode estar
