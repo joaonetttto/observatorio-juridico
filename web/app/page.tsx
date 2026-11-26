@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import StatusColetas from "./StatusColetas";
 import AcordaosStj from "./AcordaosStj";
 import BuscaAcordaos from "./BuscaAcordaos";
+import KpiCards from "./KpiCards";
 import {
   Bar,
   BarChart,
@@ -110,6 +111,7 @@ export default function Home() {
           Não consegui falar com a API. Ela está ligada?
         </p>
       )}
+      <KpiCards />
       <StatusColetas />
       <Grafico
         titulo="Processos por ano de ajuizamento"
