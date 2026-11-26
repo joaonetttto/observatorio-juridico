@@ -27,3 +27,7 @@ def test_endpoint_devolve_o_que_vem_do_banco(monkeypatch):
 
     assert resposta.status_code == 200
     assert resposta.json() == dados_falsos
+    
+def test_resumo_devolve_um_objeto(monkeypatch):
+    monkeypatch.setattr("api.consultar", lambda sql, parametros=None: [{"processos": 1}])
+    assert client.get("/resumo").json() == {"processos": 1}

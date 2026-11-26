@@ -176,3 +176,16 @@ def acordaos_busca(
         """,
         (q, q, q, limite),
     )
+    
+    
+@app.get("/resumo")
+def resumo():
+    return consultar(
+        """
+        SELECT
+            (SELECT COUNT(*) FROM processo) AS processos,
+            (SELECT COUNT(DISTINCT tribunal_id) FROM processo) AS tribunais,
+            (SELECT COUNT(*) FROM acordao WHERE relacao_lgpd = 'cita_lgpd') AS acordaos,
+            (SELECT to_char(MAX(iniciada_em), 'DD/MM/YYYY') FROM coleta) AS ultima_coleta
+        """
+    )[0]
