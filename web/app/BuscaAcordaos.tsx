@@ -54,7 +54,7 @@ export default function BuscaAcordaos() {
   }
 
   return (
-    <section className="mt-16">
+    <section className="mt-8 rounded-xl border border-gray-800 bg-gray-900/40 p-6">
       <h2 className="text-2xl font-bold">Buscar nas ementas</h2>
       <p className="mt-2 text-sm text-gray-500">
         Pesquisa nas ementas dos acórdãos do STJ que citam a LGPD. Digite as

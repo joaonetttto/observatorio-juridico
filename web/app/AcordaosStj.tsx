@@ -44,7 +44,7 @@ export default function AcordaosStj() {
   }, []);
 
   return (
-    <section className="mt-16">
+    <section className="mt-8 rounded-xl border border-gray-800 bg-gray-900/40 p-6">
       <h2 className="text-2xl font-bold">Acórdãos do STJ que citam a LGPD</h2>
       <p className="mt-2 text-sm text-gray-500">
         Fonte: Portal de Dados Abertos do STJ (espelhos de acórdãos). Aqui entram

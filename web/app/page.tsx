@@ -38,7 +38,7 @@ function Grafico({
   horizontal = false,
 }: GraficoProps) {
   return (
-    <section className="mt-12">
+    <section className="mt-8 rounded-xl border border-gray-800 bg-gray-900/40 p-6">
       <h2 className="text-xl font-semibold">{titulo}</h2>
       <p className="mt-1 text-sm text-gray-500">{descricao}</p>
       <div className={horizontal ? "mt-4 h-96" : "mt-4 h-72"}>
